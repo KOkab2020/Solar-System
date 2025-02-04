@@ -13,12 +13,17 @@ from sklearn.model_selection import train_test_split
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa.stattools import adfuller
 from scipy.stats import ttest_rel
+import scipy.stats as stats
 
 def dm_test(errors1, errors2):
+    h=1
     diff = errors1 - errors2
     mean_diff = np.mean(diff)
-    std_diff = np.std(diff, ddof=1)
-    dm_stat = mean_diff / (std_diff / np.sqrt(len(diff)))
+    d_var = np.var(diff, ddof=1)
+    T = len(diff)
+    gamma = np.array([np.cov(d, d)[0, 1] if i < T else 0 for i in range(h)])
+    S_d = np.sqrt(d_var + 2 * np.sum(gamma) / T)
+    dm_stat = mean_diff / S_d
     p_value = 2 * (1 - stats.norm.cdf(abs(dm_stat)))
     return dm_stat, p_value
 
