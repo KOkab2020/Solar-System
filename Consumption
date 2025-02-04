@@ -19,7 +19,7 @@ def dm_test(errors1, errors2):
     mean_diff = np.mean(diff)
     std_diff = np.std(diff, ddof=1)
     dm_stat = mean_diff / (std_diff / np.sqrt(len(diff)))
-    p_value = 2 * (1 - abs(dm_stat))
+    p_value = 2 * (1 - stats.norm.cdf(abs(dm_stat)))
     return dm_stat, p_value
 
 # Load datase
