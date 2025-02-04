@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,MinMaxScaler
 from sklearn.model_selection import train_test_split
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa.stattools import adfuller
@@ -68,34 +68,43 @@ y_train, y_test = y[:train_size], y[train_size:]
 # Standardize the features
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+X_test_scaled_1 = scaler.transform(X_test)
+mm_scaler = MinMaxScaler()
+X_train_mm = mm_scaler.fit_transform(X_train)
+X_test_scaled_2 = mm_scaler.transform(X_test)
 
 # ------------------ Time Series Machine Learning Models ------------------
 
 # Random Forest
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rf.fit(X_train_scaled, y_train)
-y_pred_rf = rf.predict(X_test_scaled)
+y_pred_rf1 = rf.predict(X_test_scaled_1)
+y_pred_rf2 = rf.predict(X_test_scaled_2)
 
 # SVM (Support Vector Regressor)
 svm = SVR(C=1.0, gamma='scale')
 svm.fit(X_train_scaled, y_train)
-y_pred_svm = svm.predict(X_test_scaled)
+y_pred_svm1 = svm.predict(X_test_scaled_1)
+y_pred_svm2 = svm.predict(X_test_scaled_2)
 
 # KNN (K-Nearest Neighbors Regressor)
 knn = KNeighborsRegressor(n_neighbors=5)
 knn.fit(X_train_scaled, y_train)
-y_pred_knn = knn.predict(X_test_scaled)
+y_pred_knn1 = knn.predict(X_test_scaled_1)
+y_pred_knn2 = knn.predict(X_test_scaled_2)
+
 
 # XGBoost (Extreme Gradient Boosting Regressor)
 xgb_model = XGBRegressor(n_estimators=100, random_state=42)
 xgb_model.fit(X_train_scaled, y_train)
-y_pred_xgb = xgb_model.predict(X_test_scaled)
+y_pred_xgb1 = xgb_model.predict(X_test_scaled_1)
+y_pred_xgb2 = xgb_model.predict(X_test_scaled_2)
 
 # MLP Regressor (Multi-Layer Perceptron)
 mlp = MLPRegressor(hidden_layer_sizes=(50, 50), max_iter=500, random_state=42)
 mlp.fit(X_train_scaled, y_train)
-y_pred_mlp = mlp.predict(X_test_scaled)
+y_pred_mlp1 = mlp.predict(X_test_scaled_1)
+y_pred_mlp2 = mlp.predict(X_test_scaled_2)
 
 # ------------------ Evaluation Metrics ------------------
 
@@ -157,20 +166,25 @@ plt.show()
 
 
 
-y_preds = {'Random Forest': y_pred_rf,
-    'SVM': y_pred_svm,
-    'KNN': y_pred_knn,
-    'XGBoost': y_pred_xgb,
-    'MLP': y_pred_mlp}
+y_preds1 = {'Random Forest': y_pred_rf1,
+    'SVM': y_pred_svm1,
+    'KNN': y_pred_knn1,
+    'XGBoost': y_pred_xgb1,
+    'MLP': y_pred_mlp1}
 
+y_preds2 = {'Random Forest': y_pred_rf2,
+    'SVM': y_pred_svm2,
+    'KNN': y_pred_knn2,
+    'XGBoost': y_pred_xgb2,
+    'MLP': y_pred_mlp2}
 
 # Print RMSE, MAE, and R-squared for each model
 for model, rmse, mae, r2 in zip(models, rmse_values, mae_values, r2_values):
     print(f'{model}: RMSE = {rmse:.4f}, MAE = {mae:.4f}, R-squared = {r2:.4f}')
 
-baseline_model = 'MLP'
+baseline_model = 'Random Forest'
 for model_name in models:
     if model_name != baseline_model:
-        dm_stat, p_value = dm_test(abs(y_test - y_preds[baseline_model]), abs(y_test - y_preds[model_name]))
-        print(f"DM Test ({baseline_model} vs {model_name}): DM Stat = {dm_stat:.4f}, p-value = {p_value:.4f}")
+        dm_stat, p_value = dm_test(abs(y_test - y_preds1[model_name]), abs(y_test - y_preds2[model_name]))
+        print(f"DM Test ({model_name}): DM Stat = {dm_stat:.4f}, p-value = {p_value:.4f}")
 
