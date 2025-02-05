@@ -21,7 +21,7 @@ def dm_test(errors1, errors2):
     mean_diff = np.mean(diff)
     d_var = np.var(diff, ddof=1)
     T = len(diff)
-    gamma = np.array([np.cov(d, d)[0, 1] if i < T else 0 for i in range(h)])
+    gamma = np.array([np.cov(diff, diff)[0, 1] if i < T else 0 for i in range(h)])
     S_d = np.sqrt(d_var + 2 * np.sum(gamma) / T)
     dm_stat = mean_diff / S_d
     p_value = 2 * (1 - stats.norm.cdf(abs(dm_stat)))
@@ -115,11 +115,11 @@ def calculate_metrics(y_test, y_pred):
     return rmse, mae, r2
 
 # Calculate metrics for all models
-rmse_rf, mae_rf, r2_rf = calculate_metrics(y_test, y_pred_rf)
-rmse_svm, mae_svm, r2_svm = calculate_metrics(y_test, y_pred_svm)
-rmse_knn, mae_knn, r2_knn = calculate_metrics(y_test, y_pred_knn)
-rmse_xgb, mae_xgb, r2_xgb = calculate_metrics(y_test, y_pred_xgb)
-rmse_mlp, mae_mlp, r2_mlp = calculate_metrics(y_test, y_pred_mlp)
+rmse_rf, mae_rf, r2_rf = calculate_metrics(y_test, y_pred_rf1)
+rmse_svm, mae_svm, r2_svm = calculate_metrics(y_test, y_pred_svm1)
+rmse_knn, mae_knn, r2_knn = calculate_metrics(y_test, y_pred_knn1)
+rmse_xgb, mae_xgb, r2_xgb = calculate_metrics(y_test, y_pred_xgb1)
+rmse_mlp, mae_mlp, r2_mlp = calculate_metrics(y_test, y_pred_mlp1)
 
 # ------------------ Plotting RMSE, MAE, and R-squared ------------------
 
@@ -153,11 +153,11 @@ plt.show()
 
 plt.figure(figsize=(12,6))
 plt.plot(data['DateTime'][train_size:], y_test, label='Actual Power Consumption', color='blue')
-plt.plot(data['DateTime'][train_size:], y_pred_rf, label='Random Forest Predicted', color='red')
-plt.plot(data['DateTime'][train_size:], y_pred_svm, label='SVM Predicted', color='green')
-plt.plot(data['DateTime'][train_size:], y_pred_knn, label='KNN Predicted', color='purple')
-plt.plot(data['DateTime'][train_size:], y_pred_xgb, label='XGBoost Predicted', color='orange')
-plt.plot(data['DateTime'][train_size:], y_pred_mlp, label='MLP Predicted', color='cyan')
+plt.plot(data['DateTime'][train_size:], y_pred_rf1, label='Random Forest Predicted', color='red')
+plt.plot(data['DateTime'][train_size:], y_pred_svm1, label='SVM Predicted', color='green')
+plt.plot(data['DateTime'][train_size:], y_pred_knn1, label='KNN Predicted', color='purple')
+plt.plot(data['DateTime'][train_size:], y_pred_xgb1, label='XGBoost Predicted', color='orange')
+plt.plot(data['DateTime'][train_size:], y_pred_mlp1, label='MLP Predicted', color='cyan')
 plt.xlabel('DateTime')
 plt.ylabel('Power Consumption')
 plt.title('Time Series Forecasting of Power Consumption (Zone 3)')
@@ -184,7 +184,6 @@ for model, rmse, mae, r2 in zip(models, rmse_values, mae_values, r2_values):
 
 baseline_model = 'Random Forest'
 for model_name in models:
-    if model_name != baseline_model:
         dm_stat, p_value = dm_test(abs(y_test - y_preds1[model_name]), abs(y_test - y_preds2[model_name]))
         print(f"DM Test ({model_name}): DM Stat = {dm_stat:.4f}, p-value = {p_value:.4f}")
 
